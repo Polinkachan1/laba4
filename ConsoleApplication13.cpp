@@ -99,7 +99,7 @@ void how_many_symbols_in_word(char* text, int N) {
             counter += 1;
         }
         else {
-            cout <<" - "<< counter << endl;
+            cout << " - " << counter << endl;
             counter = 0;
         }
     }
@@ -114,25 +114,55 @@ int linear_search(char* text, char pattern[], int N) {
             }
         }
         if (j == pattern_len) {
-                return i;
-            }
+            return i;
+        }
     }
     return -1;
 }
-//int Boyer_Moore_algorithm(char* text, char pattern[], int N) {
-//}
+void prepare_table(const char* pattern, int pattern_len, int table[256]) {
+    for (int i = 0; i < 256; i++) {
+        table[i] = pattern_len;
+    }
+    for (int i = 0; i < pattern_len - 1; i++) {
+        table[(unsigned char)pattern[i]] = pattern_len - i - 1;
+    }
+}
+int Boyer_Moore_algorithm(char* text, char pattern[], int N, int* table) {
+    int pattern_len = my_str_len(pattern);
+    int text_len = my_str_len(text);
+    prepare_table(pattern, pattern_len, table);
+    int j, k;
+
+    int i = pattern_len - 1;
+    while (i < text_len) {
+        int j = pattern_len - 1;
+        int k = i;
+
+        while (j >= 0 && k >= 0 && text[k] == pattern[j]) {
+            k--;
+            j--;
+        }
+
+        if (j < 0) {
+            return k + 1;
+        }
+        i += table[(unsigned char)text[i]];
+    }
+
+    return -1;
+}
 int organize_words(char* text, char words[][10]) {
-    int i = 0, word_len = 0, count =0;
+    int i = 0, word_len = 0, count = 0;
     while (text[i] != '\0' && count < 50) {
         if (text[i] == ' ' || text[i + 1] == '\0') {
             if (word_len > 0) {
-                words[count][word_len] = '\0'; 
-                count++; 
+                words[count][word_len] = '\0';
+                count++;
                 word_len = 0;
             }
         }
         else {
-            words[count][word_len] = text[i]; 
+            words[count][word_len] = text[i];
             word_len++;
         }
         i++;
@@ -152,7 +182,7 @@ void swap_words(char words[][10], int j) {
         words[j][k] = words[j - 1][k];
         k++;
     }
-    words[j][k] = '\0'; 
+    words[j][k] = '\0';
     k = 0;
     while (temp[k] != '\0' && k < 10) {
         words[j - 1][k] = temp[k];
@@ -168,13 +198,13 @@ void sort_alphabetically(char words[][10], int count) {
                 swap_words(words, j);
             }
             else if (words[j][0] == words[j - 1][0]) {
-                while (words[j][c] == words[j-1][c]) {
+                while (words[j][c] == words[j - 1][c]) {
                     c++;
                 }
                 if (words[j][c] < words[j - 1][c]) {
                     swap_words(words, j);
                 }
-            
+
             }
         }
     }
@@ -186,6 +216,7 @@ void display_menu() {
     cout << "3. Вывести на экран слова последовательности в алфавитном порядке." << endl;
     cout << "4. Вывести на экран количество символов в каждом слове исходной последовательности." << endl;
     cout << "5. Необходимо найти все подстроки, которую введёт пользователь в имеющейся строке." << endl;
+    cout << "6. Алгоритм Бойера-Мура" << endl;
 }
 
 int main()
@@ -193,9 +224,10 @@ int main()
     setlocale(LC_ALL, "");
     SetConsoleCP(1251);
     SetConsoleOutputCP(1251);
-    int identificator, num1, num2, n, len_of_sequence, result, count;
+    int identificator, num1, num2, n, len_of_sequence, result, count, index;
     const int N = 600;
-    char sequence[N]={' '}, pattern[30], words[50][10];
+    char sequence[N] = { ' ' }, pattern[30], pattern1[30], words[50][10];
+    int table[256];
     while (true) {
         display_menu();
         cout << "ВВЕДИТЕ НОМЕР ЗАДАНИЯ: ";
@@ -255,14 +287,25 @@ int main()
             keyboard_input(pattern, my_str_len(pattern));
             result = linear_search(sequence, pattern, my_str_len(sequence));
             if (result == -1) {
-                cout << "Нет таких слов в последовательности"<< endl;
+                cout << "Нет таких слов в последовательности" << endl;
             }
             else {
-                cout <<"Есть такая подстрока,начиная с индекса "<< result<< endl;
+                cout << "Есть такая подстрока,начиная с индекса " << result << endl;
             }
             break;
         case 6:
-            //Boyer_Moore_algorithm(sequence, pattern, my_str_len(sequence));
+            system("cls");
+            cout << "Введите слово для поиска" << endl;
+            cin.clear();
+            cin.sync();
+            keyboard_input(pattern1, my_str_len(pattern1));
+            index = Boyer_Moore_algorithm(sequence, pattern1, my_str_len(sequence), table);
+            if (index != -1) {
+                cout << "Первое вхождение найдено на индексе: " << index << endl;
+            }
+            else {
+                cout << "Шаблон не найден." << endl;
+            }
             break;
         case 7:
             cout << "Выход!" << endl;
